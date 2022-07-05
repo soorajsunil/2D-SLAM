@@ -1,5 +1,7 @@
 # SLAM-Navigation-Toolbox
 
+The Matlab script generates occupancy grid map of an environment from raw lidar scans using pose graph optimization. 
+
 Run:\
 SLAM.m file 
 
