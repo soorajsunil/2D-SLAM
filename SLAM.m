@@ -6,22 +6,21 @@ clc; clear; close all;
 load('scans_a.mat'); 
 
 % get  number of scans and scan length of the data 
-[nSamples, scanLength] = size(Ranges); 
+[nSamples, scanLength] = size(ranges); 
 
 % Downsample scans for efficiency 
-startIdx  = 10;     % start index 
+startIdx  = 1;     % start index 
 stepSize  = 3;      % step size 
 stopIdx   = nSamples; % stop index 
 sampleIdx = startIdx:stepSize:stopIdx; 
 
 % Generate down sampled scans 
-nSamples  = length(sampleIdx); 
+nSamples    = length(sampleIdx); 
 samples     = cell(1, nSamples); 
-samples{1}  = lidarScan(Ranges(startIdx,:),Angles(startIdx,:));
+samples{1}  = lidarScan(ranges(startIdx,:),angles);
 
 for k = 2:nSamples
-    samples{k} = lidarScan(Ranges(startIdx+(stepSize*(k-1)),:), ...
-                            Angles(startIdx+(stepSize*(k-1)),:));    
+    samples{k} = lidarScan(ranges(startIdx+(stepSize*(k-1)),:), angles);    
 end 
 clear k 
 
@@ -39,7 +38,7 @@ map_per_sample  = cell(1,nSamples);
 
 figure;
 for i=1:nSamples
-
+   
     oneTic = tic; 
     
     [isScanAccepted, loopClosureInfo, optimizationInfo] = ...
@@ -50,7 +49,8 @@ for i=1:nSamples
     % Build occupancy grid map 
     GridMap = buildMap(scans, optimizedPoses,mapResolution, maxLidarRange);
     
-    toc_per_sample(i) = toc(oneTic); 
+    % Calculate run-time
+    toc_per_sample(i) = toc(oneTic);  
     toc_total         = toc(oneTic)+ toc_total; 
     
     % Plot figures 
