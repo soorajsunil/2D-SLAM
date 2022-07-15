@@ -1,5 +1,4 @@
-% 2D Laser SLAM using MATLAB  (real data collected using Quanser Qcar)
-
+% 2D Laser SLAM using MATLAB  (scans collected using RPLIDAR)
 clc; clear; close all;
 
 % Load one of the 2D lidar scans
@@ -17,7 +16,7 @@ ranges        = ranges(sampleIdx,:);
 [nSamples, ~] = size(ranges); % recalculate number of scans after down sampling
 
 % Generate down sampled scans
-samples     = cell(1, nSamples);
+samples = cell(1, nSamples);
 for k = 1:nSamples
     samples{k} = lidarScan(ranges(k,:), angles);
 end
@@ -35,19 +34,13 @@ toc_per_sample  = zeros(1,nSamples);
 toc_total       = 0;
 map_per_sample  = cell(1,nSamples);
 
-figure;
+ f = figure('rend','painters','pos',[100 100 800 600]); clf;
 for i=1:nSamples
-
     oneTic = tic;
-
-    [isScanAccepted, loopClosureInfo, optimizationInfo] = ...
-        addScan(SlamAlg, samples{i});
-
+    [isScanAccepted, loopClosureInfo, optimizationInfo] = addScan(SlamAlg, samples{i});
     [scans, optimizedPoses]  = scansAndPoses(SlamAlg);
-
     % Build occupancy grid map
     GridMap = buildMap(scans, optimizedPoses,mapResolution, maxLidarRange);
-
     % Calculate run-time
     toc_per_sample(i) = toc(oneTic);
     toc_total         = toc(oneTic)+ toc_total;
@@ -57,15 +50,21 @@ for i=1:nSamples
     show(SlamAlg.PoseGraph, 'IDs', 'off');
     title('Occupancy Grid Map')
     drawnow
+    frame = getframe(f); % capture frame for file-writing
+    im = frame2im(frame);
+    [imind,cm] = rgb2ind(im,256);
+    if i==1
+          imwrite(imind,cm,'anime.gif','gif', 'Loopcount',inf, 'DelayTime', .05); 
+    else
+          imwrite(imind,cm,'anime.gif','gif','WriteMode','append', 'DelayTime', .05); 
+    end 
 
     if isScanAccepted
         fprintf('Added scan %d / %d \n', i, nSamples);
     else
         continue;
     end
-
     map_per_sample{i} = GridMap; % save maps for external purposes
-
 end
 clear i
 
